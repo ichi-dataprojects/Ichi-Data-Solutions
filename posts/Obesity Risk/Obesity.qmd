@@ -1,0 +1,189 @@
+---
+title: "Food categories that poses obesity risks"
+author: "Christmore Setebe | ichidata solutions"
+date: "2025-06-15"
+image: "obesity.jpg"
+page-layout: full
+format: html
+---
+
+<!-- ✅ Navigation Buttons -->
+::: {.flex .gap-3 .pb-4}
+
+[📰 News](#news){.btn .btn-outline-secondary}
+[💻 Code and Visualization](#Code and Visualization){.btn .btn-outline-secondary}
+[📈 Data Storytelling](#Data Storytelling){.btn .btn-outline-secondary}
+
+:::
+
+<!-- ✅ Tabbed Sections Start -->
+
+## Explore the Story by Category {.tabset}
+
+### <span id="news">📰 News</span>
+
+Obesity is a major global health concern, often driven by poor eating habits like consuming processed foods, sugary drinks, and large portions. These behaviors lead to excess fat buildup and increase the risk of serious conditions such as diabetes, heart disease, and certain cancers. Emotional eating and late-night snacking further contribute to unhealthy weight gain. Sedentary lifestyles combined with poor diets worsen the situation. Combating obesity requires promoting balanced nutrition, physical activity, and mindful eating habits.
+
+------------------------------------------------------------------------
+
+### <span id="Code and Visualization">💻 Code and Visualization</span>
+
+```{r fig.width=10, fig.height=8, fig.align='center', dpi=300}
+library(tidyverse)
+library(readxl)
+library(stringr)
+library(forcats)
+library(ggtext)
+library(gt)
+library(GGally)
+
+# Load your dataset
+ncf <- read_excel("NCF.xlsx")
+
+
+# Clean column names 
+colnames(ncf) <- c("SN", "CPC_Code", "Commodity", "Calories", "Protein", "Fats", "Category")
+
+# Ensure data is numeric
+ncf <- ncf %>%
+  mutate(across(c(Calories, Protein, Fats), as.numeric)) %>%
+  drop_na(Calories, Protein, Fats)
+
+# Remove NA values and check for duplicates
+ncf_clean <- ncf %>%
+  distinct() %>%
+  drop_na()
+
+# View(ncf_clean)
+anyNA(ncf)
+anyNA(ncf_clean)
+
+## Categorize Foods into Low, Medium, and High Calorie Classes
+
+# Define custom calorie levels based on your specified thresholds
+ncf_clean <- ncf_clean %>%
+  mutate(Calorie_Level = case_when(
+    Calories >= 10 & Calories <= 100 ~ "Low",
+    Calories >= 201 & Calories <= 500 ~ "Medium",
+    Calories >= 501 & Calories <= 950 ~ "High",
+    TRUE ~ NA_character_  # For calories outside defined ranges
+  ))
+
+# Summary stats per food category
+category_summary <- ncf_clean %>%
+  group_by(Category) %>%
+  summarise(
+    Avg_Calories = mean(Calories, na.rm = TRUE),
+    Avg_Protein = mean(Protein, na.rm = TRUE),
+    Avg_Fats = mean(Fats, na.rm = TRUE),
+    Median_Calories = median(Calories, na.rm = TRUE),
+    SD_Calories = sd(Calories, na.rm = TRUE),
+    Count = n()
+  ) %>%
+  arrange(Avg_Calories)
+
+print(category_summary)
+
+
+# Create GT table
+category_summary %>%
+  gt() %>%
+  tab_header(
+    title = md("**Nutritional Summary by Food Category**"),
+    subtitle = "Mean, Median and Standard Deviation of Calories, Protein, and Fats"
+  ) %>%
+  fmt_number(
+    columns = c(Avg_Calories, Avg_Protein, Avg_Fats, Median_Calories, SD_Calories),
+    decimals = 1
+  ) %>%
+  cols_label(
+    Category = "Food Category",
+    Avg_Calories = "Avg Calories (kcal)",
+    Avg_Protein = "Avg Protein (g)",
+    Avg_Fats = "Avg Fats (g)",
+    Median_Calories = "Median Calories",
+    SD_Calories = "SD Calories",
+    Count = "No. of Foods"
+  ) %>%
+  tab_source_note(
+    source_note = md("**Data Source:** National Food Balance Sheets Report (2014–2017), NBS-Zanzibar | Created by: *ichi data solutions*")
+  ) %>%
+  opt_table_font(font = list(google_font("Open Sans"), default_fonts()))
+
+# Step 1: Define updated risk classification table with emoji-enhanced categories
+risk_metadata <- tribble(
+  ~Category,             ~Calorie_Range,     ~Risk_Level,              ~Notes,                                       ~Label,
+  "Oils & Fats",         "400 – 900+",       "High risk",              "Very energy dense",                          "🧈 Oils & Fats",
+  "Nuts & Seeds",        "400 – 700+",       "High risk",              "Energy dense; often high in fat",            "🥜 Nuts & Seeds",
+  
+  "Fish & Seafood",      "50 – 200",         "Moderate to high risk",  "Lean proteins but watch portion sizes",      "🐟 Fish & Seafood",
+  "Legumes & Pulses",    "100 – 300",        "Moderate to high risk",  "Good protein/fiber balance",                 "🌱 Legumes & Pulses",
+  "Cereals & Grains",    "100 – 350",        "Moderate to high risk",  "Carb-rich; portion control",                 "🌾 Cereals & Grains",
+  "Sweeteners",          "300 – 900+",       "Moderate to high risk",  "High sugar content",                         "🍬 Sweeteners",
+  
+  "Animal Products",     "100 – 400+",       "Moderate risk",          "Watch fatty cuts and dairy fats",            "🥩 Animal Products",
+  "Spices & Herbs",      "0 – 300",          "Moderate risk",          "Salt/spice overload",                        "🌶️ Spices & Herbs",
+  "Processed Foods",     "300 – 920+",       "Moderate risk",          "High fat, sugar, processed ingredients",     "🥫 Processed Foods",
+  
+  "Roots & Tubers",      "50 – 150",         "Low risk",               "Starchy but generally safe",                 "🥔 Roots & Tubers",
+  "Vegetables",          "10 – 100",         "Low risk",               "Nutrient-dense and safe",                    "🥦 Vegetables",
+  
+  "Fruits",              "30 – 250",         "Lower risk",             "Sugary fruits in moderation",                "🍎 Fruits",
+  "Beverages",           "0 – 150",          "Lower risk",             "Mostly low-cal drinks",                      "🥤 Beverages"
+)
+
+# Step 2: Summarize average nutrient content per category
+category_summary <- ncf_clean %>%
+  group_by(Category) %>%
+  summarise(
+    Avg_Calories = mean(Calories, na.rm = TRUE),
+    Avg_Protein = mean(Protein, na.rm = TRUE),
+    Avg_Fats = mean(Fats, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  left_join(risk_metadata, by = "Category")
+
+# Step 3: Plot with emoji-labeled categories
+ggplot(category_summary, aes(x = fct_reorder(Label, Avg_Calories), y = Avg_Calories, fill = Risk_Level)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(round(Avg_Calories, 1), " kcal")), hjust = -0.1, size = 3.5) +
+  coord_flip() +
+  scale_fill_manual(values = c(
+    "Lower risk"             = "#1a9850",   # Dark green
+    "Low risk"               = "#66bd63",   # Medium green
+    "Moderate risk"          = "#fee08b",   # Yellow
+    "Moderate to high risk"  = "#f46d43",   # Orange
+    "High risk"              = "#d73027"    # Red
+  )) +
+  labs(
+    title = "Food Categories and Their Obesity Risk if Consumed Excessively",
+    subtitle = "Higher average calories per 100g reflect increased potential for weight gain",
+    x = "Food Category",
+    y = "Average Calories (kcal/100g)",
+    caption = "Data Source: National Food Balance Sheets Report 2014–2017 (NBS-Zanzibar)\nVisualization: ichi data solutions"
+  ) +
+  theme_void() +
+  theme(
+    axis.text.y = element_markdown(size = 11),
+    plot.title = element_markdown(face = "bold", size = 14),
+    plot.subtitle = element_markdown(size = 11),
+    plot.caption = element_markdown(size = 9, face = "italic"),
+    legend.position = "bottom"
+  ) +
+  ylim(0, max(category_summary$Avg_Calories, na.rm = TRUE) + 50)
+
+
+
+```
+
+### <span id="Data Storytelling">📈 Data Storytelling</span>
+
+
+#### 🥣 **What Your Plate Is Hiding**
+
+Many people unknowingly eat foods that quietly harm their health. A review of 400+ foods shows the **highest-calorie items often lack nutritional value**. For example, **Oils & Fats average 808 kcal** with over **91g of fat**, while **Nuts & Seeds** and **Fish & Seafood** follow with high calorie and fat content.
+
+In contrast, **vegetables, fruits, and beverages** are low in calories and fats yet often under-consumed. Even "healthy" foods like **legumes and cereals** can be calorie-dense if not portioned mindfully.
+
+The message is clear: **Calories don't equal nutrition.** By reducing oil, processed foods, and sweeteners and choosing vegetables more often we can improve our health without sacrificing taste.
+

@@ -1,0 +1,30 @@
+project:
+  type: website
+
+website:
+  title: "Ichi Data Solutions"
+  navbar:
+    left:
+      - text: "Home"
+        href: index.qmd
+        icon: house
+    right:
+      - about.qmd
+      - icon: github
+        href: https://github.com/ichi-dataprojects
+        target: _blank
+      - icon: linkedin
+        href: https://www.linkedin.com/in/christmore-setebe-089b0a172
+        target: _blank
+      - icon: instagram
+        href: https://instagram.com/ichidatascience
+        target: _blank
+
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css
+
+editor: visual

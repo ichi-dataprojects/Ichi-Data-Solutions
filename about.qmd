@@ -1,0 +1,31 @@
+---
+title: "About"
+image: Data.jpg
+about:
+  template: jolla
+  links:
+    - icon: email
+      text: Send me an Email
+      href: mailto:ichidataanalysis@gmail.com
+      target: _blank
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/christmore-setebe-089b0a172
+      target: _blank
+    - icon: instagram
+      text: Instagram
+      href: https://instagram.com/ichidatascience
+      target: _blank
+    - icon: github
+      text: GitHub
+      href: https://github.com/ichi-dataprojects
+      target: _blank
+---
+
+**Hello and welcome to this blog !**\
+My name is **Christmore Setebe I go by the brand name** Ichi data Solutions , I’m a passionate **Data Enthusiast** specializing in **data analysis and visualization** across a wide spectrum of domains. The guiding principle that shapes my approach to transforming raw data into meaningful insights goes by the moto:\
+**Interpret, Communicate, Highlight, Influence** thus abbriviated as ichi
+
+In this blog you will find several posts where you'll discover **intuitive data analyses** and **compelling data stories** designed to illuminate patterns, provoke thought, and support **data-driven decision-making**. Whether you're a fellow analyst, a decision-maker, or someone curious about the power of data, I invite you to join me on this exciting journey through the world of data.
+
+Let’s explore, learn, and influence together — one insight at a time.
