@@ -1,8 +1,8 @@
 project:
   type: website
-
+  output-dir: docs
 website:
-  title: "Ichi Data Solutions"
+  title: "Ichi Data Solutions Blog"
   navbar:
     left:
       - text: "Home"
