@@ -1,0 +1,196 @@
+---
+title: "African Countries Facing the Greatest Challenges in Affording Healthy Food"
+author: "Christmore Setebe | ichidata solutions"
+date: "2025-07-7"
+image: "Diet.jpg"
+page-layout: full
+format: html
+---
+
+<!-- ✅ Navigation Buttons -->
+
+::: {.flex .gap-3 .pb-4}
+[📰 News](#news){.btn .btn-outline-secondary} [💻 Code and Visualization](#Code%20and%20Visualization){.btn .btn-outline-secondary} [📈 Data Storytelling](#Data%20Storytelling){.btn .btn-outline-secondary}
+:::
+
+<!-- ✅ Tabbed Sections Start -->
+
+## Explore the Story by Category {.tabset}
+
+### <span id="news">📰 News</span>
+
+Across many low-income nations, over 60% of the population cannot afford a healthy diet. This growing diet decline signals a nutritional emergency where families are forced to choose between essential nutrients and daily survival. As malnutrition rises, so does the urgency to act, ensuring access to nourishing food for all.
+
+------------------------------------------------------------------------
+
+### <span id="Code and Visualization">💻 Code and Visualization</span>
+
+```{r fig.width=12, fig.height=12, fig.align='center', dpi=300}
+
+# Load required libraries
+library(ggplot2)
+library(dplyr)
+library(countrycode)
+library(ggimage)
+library(grid)
+
+# Dataset
+diet_data <- data.frame(
+  Location = c(
+    "South Africa", "Belize", "Ghana", "Eswatini", "Angola", "Tanzania",
+    "Lesotho", "Nigeria", "Congo", "Kenya", "Haiti", "Sierra Leone",
+    "Burkina Faso", "Guinea-Bissau", "Liberia", "Uganda", "Rwanda",
+    "Zambia", "Niger", "Central African Republic", "Mozambique",
+    "Burundi", "Malawi", "Democratic Republic of Congo", "Madagascar"
+  ),
+  Income_Classification = c(
+    "Upper-middle-income countries", "Upper-middle-income countries",
+    "Lower-middle-income countries", "Lower-middle-income countries",
+    "Lower-middle-income countries", "Lower-middle-income countries",
+    "Lower-middle-income countries", "Lower-middle-income countries",
+    "Lower-middle-income countries", "Lower-middle-income countries",
+    "Lower-middle-income countries", "Low-income countries",
+    "Low-income countries", "Low-income countries", "Low-income countries",
+    "Low-income countries", "Low-income countries", "Low-income countries",
+    "Low-income countries", "Low-income countries", "Low-income countries",
+    "Low-income countries", "Low-income countries", "Low-income countries",
+    "Low-income countries"
+  ),
+  Percentage = c(
+    61.2, 61.8, 63.0, 65.0, 72.2, 75.5, 76.3, 78.7, 79.1, 79.2, 83.6,
+    62.5, 63.1, 64.0, 64.1, 72.5, 75.7, 81.7, 86.3, 86.7, 89.3, 89.6,
+    89.6, 91.4, 93.6
+  )
+)
+
+# Add ISO2 codes
+diet_data$ISO2 <- countrycode(diet_data$Location, origin = "country.name", destination = "iso2c")
+diet_data$ISO2[diet_data$Location == "Congo"] <- "cg"
+diet_data$ISO2[diet_data$Location == "Democratic Republic of Congo"] <- "cd"
+diet_data$ISO2[diet_data$Location == "Eswatini"] <- "sz"
+
+# Add flag URLs
+diet_data <- diet_data %>%
+  mutate(flag_url = paste0("https://flagcdn.com/w40/", tolower(ISO2), ".png"))
+
+# Sort and order
+diet_data <- diet_data %>%
+  arrange(Percentage) %>%
+  mutate(Location = factor(Location, levels = Location))
+
+# Axis setup
+x_ticks <- c(0, 25, 50, 75, 100)
+line_y <- 0.2
+tick_height <- 0.4
+
+# Madagascar position
+madagascar_y <- which(diet_data$Location == "Madagascar")
+madagascar_x <- diet_data$Percentage[diet_data$Location == "Madagascar"]
+
+# Annotation text
+annotation_text <- paste(
+  "Madagascar:",
+  "9 out of 10",
+  "individuals cannot",
+  "afford to eat healthily",
+  sep = "\n"
+)
+
+# Plot
+ggplot(diet_data, aes(x = Percentage, y = Location, fill = Income_Classification)) +
+  
+  # Flags left of bars
+  geom_image(aes(x = -3, image = flag_url), size = 0.04, asp = 1) +
+  
+  # Bars
+  geom_col(width = 0.899) +
+  
+  # Labels on bars
+  geom_text(aes(label = paste0(Percentage, "%")), hjust = -0.1, size = 3.5, color = "black") +
+  
+  # Dotted line
+  geom_hline(yintercept = line_y, linetype = "dashed", color = "gray60", linewidth = 0.6) +
+  
+  # Tick marks
+  annotate("segment",
+           x = x_ticks, xend = x_ticks,
+           y = line_y - tick_height / 2, yend = line_y + tick_height / 2,
+           color = "black", linewidth = 1.2) +
+  
+  # Tick labels
+  annotate("text", x = x_ticks, y = line_y - tick_height - 0.1,
+           label = paste0(x_ticks, "%"), size = 3.8, color = "black", fontface = "bold") +
+  
+  # ▶️ SHORTER ARROW from Madagascar to annotation
+  annotate("segment",
+           x = madagascar_x + 6.0,
+           xend = madagascar_x + 19,
+           y = madagascar_y,
+           yend = madagascar_y - 5,
+           colour = "firebrick",
+           size = 1,
+           arrow = arrow(
+             angle = 30,
+             length = unit(0.3, "cm"),
+             ends = "last",
+             type = "closed"
+           )
+  ) +
+  
+  # ✅ Fixed: Annotation box on right using `annotate()` instead of `geom_label()`
+  annotate("label",
+           x = 110, y = madagascar_y - 7,
+           label = annotation_text,
+           size = 5,
+           color = "black",
+           fill = "#fef9e7",
+           label.size = 0.6,
+           hjust = 0.5,
+           vjust = 0.5,
+           lineheight = 1.2
+  ) +
+  
+  # Labels and legend
+  labs(
+    title = "Countries Where Healthy Diets Are Least Affordable in Africa",
+    subtitle = "Distribution of unaffordable healthy diets across African countries, highlighting the most impacted populations",
+    caption = "Data source: FAO and World Bank (2024)\nVisualization: ichi data solutions",
+    x = "Percentage (%)",
+    y = NULL,
+    fill = "World Bank Income Classification"
+  ) +
+  
+  # Fill colors
+  scale_fill_manual(values = c(
+    "Low-income countries" = "gray71",
+    "Lower-middle-income countries" = "#20c997",
+    "Upper-middle-income countries" = "#f1c40f"
+  )) +
+  
+  # Axis limits
+  coord_cartesian(xlim = c(-5, 115), clip = "off") +
+  
+  # Theme
+  theme_void() +
+  theme(
+    axis.text.y = element_text(size = 10, hjust = 0),
+    axis.ticks.y = element_blank(),
+    plot.title = element_text(face = "bold", size = 14, hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5),
+    plot.caption = element_text(size = 9, hjust = 0, margin = margin(t = 10)),
+    legend.position = "bottom",
+    plot.margin = margin(10, 30, 60, 20),
+    panel.grid = element_blank()
+  )
+
+
+
+```
+
+### <span id="Data Storytelling">📈 Data Storytelling</span>
+
+#### 🥗 **Diet Decline Across Africa: A Growing Crisis**
+
+Across Africa, millions struggle to afford basic nutritious meals. In low-income countries, like Madagascar and the Democratic Republic of Congo, over 90% of people cannot afford a healthy diet. This crisis also touches lower-middle-income countries such as Nigeria and Kenya, where around 78-79% face the same challenge. Even some upper-middle-income countries , like South Africa, see over 60% unable to meet basic nutrition needs.
+
+This widespread diet decline threatens child development, economic productivity, and community well-being. Urgent investment in food systems and nutrition programs is essential to break the cycle and build a healthier future for all.

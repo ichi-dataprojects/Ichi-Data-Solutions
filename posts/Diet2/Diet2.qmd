@@ -1,0 +1,195 @@
+---
+title: "High-income countries with Highest Healthy-Diet Affordability"
+author: "Christmore Setebe | ichidata solutions"
+date: "2025-07-7"
+image: "Diet2.jpg"
+page-layout: full
+format: html
+---
+
+<!-- ✅ Navigation Buttons -->
+
+::: {.flex .gap-3 .pb-4}
+[📰 News](#news){.btn .btn-outline-secondary} [💻 Code and Visualization](#Code%20and%20Visualization){.btn .btn-outline-secondary} [📈 Data Storytelling](#Data%20Storytelling){.btn .btn-outline-secondary}
+:::
+
+<!-- ✅ Tabbed Sections Start -->
+
+## Explore the Story by Category {.tabset}
+
+### <span id="news">📰 News</span>
+
+In high-income countries like Iceland and Belgium, nearly everyone can afford a healthy diet, with less than 1% facing barriers. This success reflects strong social safety nets, smart food policies, and living wages that make nutritious food accessible. As a result, these nations enjoy healthier populations, lower healthcare costs, and more productive workforces. Their experience offers a powerful example for the rest of the world amid rising global food challenges. The path to universal food security is clear it's time to act and scale what works.
+
+------------------------------------------------------------------------
+
+### <span id="Code and Visualization">💻 Code and Visualization</span>
+
+```{r fig.width=12, fig.height=12, fig.align='center', dpi=300}
+
+# Load required packages
+library(ggplot2)
+library(dplyr)
+library(countrycode)
+library(ggimage)
+library(grid)
+
+# Create the diet_afford dataset
+diet_afford <- data.frame(
+  Location = c(
+    "Russia", "Malaysia", "Maldives", "Belarus", "Azerbaijan", "Lebanon",
+    "France", "Austria", "Canada", "United States", "United Kingdom", "Malta",
+    "United Arab Emirates", "Germany", "Luxembourg", "Cyprus", "Norway",
+    "Slovenia", "Switzerland", "Netherlands", "Ireland", "Denmark",
+    "Finland", "Belgium", "Iceland"
+  ),
+  Income_Classification = c(
+    "Upper-middle-income countries", "Upper-middle-income countries", "Upper-middle-income countries",
+    "Upper-middle-income countries", "Upper-middle-income countries", "Lower-middle-income countries",
+    "High-income countries", "High-income countries", "High-income countries", "High-income countries",
+    "High-income countries", "High-income countries", "High-income countries", "High-income countries",
+    "High-income countries", "High-income countries", "High-income countries", "High-income countries",
+    "High-income countries", "High-income countries", "High-income countries", "High-income countries",
+    "High-income countries", "High-income countries", "High-income countries"
+  ),
+  Percentage = c(
+    2, 1.8, 1.6, 1, 0.7, 2.9, 3.1, 2.9, 2.7, 2.5, 2.5, 2.4,
+    2.3, 2.2, 1.9, 1.8, 1.5, 1.4, 1.2, 1.1, 1, 0.9, 0.8, 0.7, 0.4
+  )
+)
+
+# Add ISO2 country codes
+diet_afford$ISO2 <- countrycode(diet_afford$Location, origin = "country.name", destination = "iso2c")
+
+# Add flag URLs
+diet_afford <- diet_afford %>%
+  mutate(flag_url = paste0("https://flagcdn.com/w40/", tolower(ISO2), ".png"))
+
+# Sort data from highest to lowest
+diet_afford <- diet_afford %>%
+  arrange(desc(Percentage)) %>%
+  mutate(Location = factor(Location, levels = Location))
+
+# Axis and tick parameters
+x_ticks <- c(0, 1, 2, 3, 4)
+line_y <- 0.2
+tick_height <- 0.4
+
+# Iceland annotation position
+iceland_y <- which(diet_afford$Location == "Iceland")
+iceland_x <- diet_afford$Percentage[diet_afford$Location == "Iceland"]
+
+# Annotation text for Iceland
+annotation_text <- paste(
+  "Iceland:",
+  "Only 0.4% of",
+  "the population",
+  "cannot afford a healthy diet",
+  sep = "\n"
+)
+
+# Plot
+ggplot(diet_afford, aes(x = Percentage, y = Location, fill = Income_Classification)) +
+  
+  # Flags left of bars
+  geom_image(aes(x = -0.3, image = flag_url), size = 0.04, asp = 1) +
+  
+  # Bars
+  geom_col(width = 0.899) +
+  
+  # Labels on bars
+  geom_text(aes(label = paste0(Percentage, "%")), hjust = -0.1, size = 3.5, color = "black") +
+  
+  # Dotted line
+  geom_hline(yintercept = line_y, linetype = "dashed", color = "gray60", linewidth = 0.6) +
+  
+  # Tick marks
+  annotate("segment",
+           x = x_ticks, xend = x_ticks,
+           y = line_y - tick_height / 2, yend = line_y + tick_height / 2,
+           color = "black", linewidth = 1.2) +
+  
+  # Tick labels
+  annotate("text", x = x_ticks, y = line_y - tick_height - 0.1,
+           label = paste0(x_ticks, "%"), size = 3.8, color = "black", fontface = "bold") +
+  
+  # Arrow pointing from Iceland to annotation
+  annotate("segment",
+           x = iceland_x + 0.3,
+           xend = iceland_x + 2.5,
+           y = iceland_y,
+           yend = iceland_y - 4,
+           colour = "firebrick",
+           size = 1,
+           arrow = arrow(
+             angle = 30,
+             length = unit(0.3, "cm"),
+             ends = "last",
+             type = "closed"
+           )
+  ) +
+  
+  # Annotation label box
+  annotate("label",
+           x = 4, y = iceland_y - 5,
+           label = annotation_text,
+           size = 5,
+           color = "black",
+           fill = "#e8f8f5",
+           label.size = 0.6,
+           hjust = 0.5,
+           vjust = 0.5,
+           lineheight = 1.2
+  ) +
+  
+  # Labels and legend
+  labs(
+    title = "Countries Where Most People Can Afford a Healthy Diet",
+    subtitle = "Distribution of affordable diets across countries with the lowest food insecurity levels",
+    caption = "Data source: FAO and World Bank (2024)\nVisualization: ichi data solutions",
+    x = "Percentage (%)",
+    y = NULL,
+    fill = "World Bank Income Classification"
+  ) +
+  
+  # Color fill
+  scale_fill_manual(values = c(
+    "Low-income countries" = "gray71",
+    "Lower-middle-income countries" = "#20c997",
+    "Upper-middle-income countries" = "#f1c40f",
+    "High-income countries" = "#3f51b5"
+  )) +
+  
+  # Axis limits
+  coord_cartesian(xlim = c(-1, 5), clip = "off") +
+  
+  # Theme
+  theme_void() +
+  theme(
+    axis.text.y = element_text(size = 10, hjust = 0),
+    axis.ticks.y = element_blank(),
+    plot.title = element_text(face = "bold", size = 14, hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5),
+    plot.caption = element_text(size = 9, hjust = 0, margin = margin(t = 10)),
+    legend.position = "bottom",
+    plot.margin = margin(10, 30, 60, 20),
+    panel.grid = element_blank()
+  )
+
+```
+
+### <span id="Data Storytelling">📈 Data Storytelling</span>
+
+#### 🥗 **Healthy Food for Everyone: A Reality in These Countries**
+
+In Iceland, only 0.4% can’t afford to eat well.
+In Finland, Belgium, and Denmark it’s under 1%.
+
+These countries show us:
+1. Nutritious food can be affordable
+2. Smart policies make it happen
+3. Healthier people build stronger nations
+
+So why not everywhere in the world?
+
+When food is affordable, children grow, economies thrive, and futures brighten.
